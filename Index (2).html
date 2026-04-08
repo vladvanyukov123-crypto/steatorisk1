@@ -1,0 +1,2145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Программа оценки риска возникновения стеатоза печени «СТЕАТОРИСК»</title>
+  <meta name="description" content="Программа оценки риска возникновения стеатоза печени «СТЕАТОРИСК» с расчетом вероятности по формуле, балльной оценкой клинических признаков вероятности диагноза и экспортом заключения в PDF." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230a7fb0'/%3E%3Cstop offset='100%25' stop-color='%235a47ff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='18' fill='url(%23g)'/%3E%3Cpath d='M18 34c0-9 7-16 16-16 5 0 9 1.6 12 5-1.2 10.8-7.8 18-16.6 18-4.8 0-8.8-2-11.4-7z' fill='white' opacity='.95'/%3E%3Cpath d='M35 18c5 1 9 5 11 10-4 1-8 1-12 0 0-4 0-7 1-10z' fill='white' opacity='.78'/%3E%3C/svg%3E" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root {
+      --bg1: #f2f7fd;
+      --bg2: #eef2ff;
+      --card: rgba(255,255,255,.92);
+      --text: #172033;
+      --muted: #64728b;
+      --line: #dbe4f1;
+      --accent: #0a7fb0;
+      --accent2: #5a47ff;
+      --good: #19844f;
+      --mid: #b97a0d;
+      --high: #c53a2d;
+      --good-soft: rgba(25,132,79,.10);
+      --mid-soft: rgba(185,122,13,.12);
+      --high-soft: rgba(197,58,45,.11);
+      --shadow: 0 16px 46px rgba(18,33,63,.12);
+      --radius-xl: 28px;
+      --radius-lg: 22px;
+      --radius-md: 18px;
+      --transition: .24s ease;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body, button, input, textarea {
+      font-variant-numeric: tabular-nums;
+    }
+
+    img, svg, canvas {
+      max-width: 100%;
+      display: block;
+    }
+
+    .hero-grid > *,
+    .layout > *,
+    .results-top > *,
+    .info-grid > *,
+    .journey > *,
+    .clinical-grid > *,
+    .support-grid > *,
+    .pdf-grid > *,
+    .metric-head > *,
+    .mini-line > *,
+    .category-banner > * {
+      min-width: 0;
+    }
+
+    .subtitle,
+    .glass-note p,
+    .lead,
+    .hero-chip,
+    .summary-chip,
+    .mini-line,
+    .stat .sub,
+    .ring-caption,
+    .scale-point,
+    .journey-step p,
+    .badge,
+    .recommend-item,
+    .tiny-note,
+    .pdf-subtitle,
+    .pdf-box .s,
+    .pdf-footer,
+    #categoryTitle,
+    #categoryText,
+    #nextStepSub {
+      overflow-wrap: anywhere;
+      word-break: normal;
+      hyphens: auto;
+    }
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      font-family: 'Inter', Arial, Helvetica, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 0% 0%, rgba(10,127,176,.12), transparent 28%),
+        radial-gradient(circle at 100% 0%, rgba(90,71,255,.12), transparent 24%),
+        linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
+      min-height: 100vh;
+    }
+
+    .shell {
+      max-width: 1420px;
+      margin: 0 auto;
+      padding: clamp(18px, 2.2vw, 28px);
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 34px;
+      padding: 28px 30px;
+      margin-bottom: 24px;
+      color: white;
+      background:
+        radial-gradient(circle at 84% 20%, rgba(255,255,255,.16), transparent 18%),
+        linear-gradient(135deg, rgba(8,112,156,.98) 0%, rgba(90,71,255,.95) 100%);
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      right: -80px;
+      bottom: -100px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.08);
+      filter: blur(2px);
+    }
+
+    .hero-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1.55fr .95fr;
+      gap: 20px;
+      align-items: end;
+    }
+
+    .brand {
+      display: flex;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .brand-badge {
+      width: 70px;
+      height: 70px;
+      border-radius: 20px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,.15);
+      border: 1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(8px);
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: .5px;
+      flex: 0 0 auto;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .95px;
+      text-transform: uppercase;
+      opacity: .9;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(28px, 3.5vw, 38px);
+      line-height: 1.12;
+      max-width: 100%;
+      text-wrap: balance;
+    }
+
+    .subtitle {
+      margin: 0;
+      max-width: 880px;
+      font-size: clamp(15px, 1.35vw, 16px);
+      line-height: 1.58;
+      opacity: .96;
+    }
+
+    .hero-chips {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hero-chip {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.1);
+      font-size: 13px;
+      line-height: 1.3;
+      max-width: 100%;
+      text-wrap: balance;
+    }
+
+    .hero-side {
+      display: grid;
+      gap: 12px;
+    }
+
+    .glass-note {
+      padding: 16px 18px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.16);
+      backdrop-filter: blur(8px);
+    }
+
+    .glass-note strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    .glass-note p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.45;
+      opacity: .96;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(360px, 470px) minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(219,228,241,.96);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: clamp(18px, 2vw, 24px);
+      backdrop-filter: blur(10px);
+      min-width: 0;
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+
+    .lead {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .label-top {
+      display: inline-block;
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--accent);
+    }
+
+    .input-card {
+      background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
+      border: 1px solid #e2ebf5;
+      border-radius: 22px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .metric-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .metric-head label {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .inline-input {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .inline-input input[type="number"] {
+      width: 100%;
+      height: 52px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 0 16px;
+      font-size: 22px;
+      color: var(--text);
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .inline-input input[type="number"]:focus {
+      border-color: rgba(10,127,176,.55);
+      box-shadow: 0 0 0 4px rgba(10,127,176,.12);
+    }
+
+    .unit-pill {
+      min-width: 84px;
+      height: 52px;
+      border-radius: 16px;
+      background: #f2f7fd;
+      border: 1px solid #dfe8f2;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #35506c;
+      padding: 0 12px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent2);
+      cursor: pointer;
+    }
+
+    .range-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 14px;
+    }
+
+
+    .patient-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(170px, 220px);
+      gap: 12px;
+      margin-bottom: 14px;
+      align-items: start;
+    }
+
+    .patient-field--name {
+      grid-column: 1 / -1;
+    }
+
+    .patient-field {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .patient-field label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #2b3b55;
+      line-height: 1.35;
+      display: block;
+      min-width: 0;
+      word-break: normal;
+      overflow-wrap: anywhere;
+    }
+
+    .patient-input,
+    .patient-age {
+      width: 100%;
+      min-width: 0;
+      height: 52px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 0 16px;
+      font-size: 16px;
+      color: var(--text);
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .patient-input:focus {
+      border-color: rgba(10,127,176,.55);
+      box-shadow: 0 0 0 4px rgba(10,127,176,.12);
+    }
+
+    .patient-age {
+      display: grid;
+      place-items: center;
+      background: #f2f7fd;
+      border-color: #dfe8f2;
+      font-weight: 700;
+      color: #28435f;
+      text-align: center;
+      padding-inline: 12px;
+    }
+
+    .patient-age small {
+      display: block;
+      margin-top: 2px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .summary-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .summary-chip {
+      font-size: 12px;
+      font-weight: 700;
+      color: #38506c;
+      background: #f3f8fd;
+      border: 1px solid #dde8f4;
+      border-radius: 999px;
+      padding: 8px 12px;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+      align-items: stretch;
+    }
+
+    button {
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 1.35;
+      transition: transform .14s ease, box-shadow .14s ease, opacity .14s ease;
+      max-width: 100%;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(0); }
+
+    .btn-primary {
+      color: white;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      padding: 14px 18px;
+      box-shadow: 0 10px 26px rgba(10,127,176,.22);
+    }
+
+    .btn-soft {
+      color: var(--text);
+      background: #eef4fb;
+      border: 1px solid #d9e5f2;
+      padding: 14px 16px;
+    }
+
+    .btn-pdf {
+      color: white;
+      background: linear-gradient(135deg, #20324d, #4067a7);
+      padding: 14px 18px;
+      box-shadow: 0 10px 26px rgba(33,50,78,.18);
+    }
+
+    .message {
+      margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: #fff6de;
+      border: 1px solid #efd38a;
+      color: #6d5108;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .results-top {
+      display: grid;
+      grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+      gap: 18px;
+      margin-bottom: 18px;
+      align-items: stretch;
+    }
+
+    .ring-card {
+      background: linear-gradient(180deg, #ffffff 0%, #f9fbfe 100%);
+      border: 1px solid #e2ebf5;
+      border-radius: 26px;
+      padding: 20px;
+      min-height: 320px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-width: 0;
+      height: 100%;
+    }
+
+    .ring-wrap {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      margin: 8px auto 0;
+    }
+
+    .ring-wrap svg {
+      width: 220px;
+      height: 220px;
+      transform: rotate(-90deg);
+    }
+
+    .ring-bg { stroke: #e6eef8; stroke-width: 14; fill: none; }
+    .ring-progress {
+      stroke: url(#ringGradient);
+      stroke-width: 14;
+      stroke-linecap: round;
+      fill: none;
+      stroke-dasharray: 603.19;
+      stroke-dashoffset: 603.19;
+      transition: stroke-dashoffset .55s ease;
+    }
+
+    .ring-center {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 32px;
+    }
+
+    .ring-number {
+      font-size: clamp(34px, 3.2vw, 42px);
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .ring-caption {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .ring-meta {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .mini-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: #344760;
+      padding: 10px 12px;
+      background: #f5f9fe;
+      border: 1px solid #e0ebf6;
+      border-radius: 14px;
+      min-width: 0;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 14px;
+      margin-bottom: 18px;
+      align-items: stretch;
+    }
+
+    .stat {
+      background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+      border: 1px solid #e3edf7;
+      border-radius: 20px;
+      padding: 16px;
+      min-height: 116px;
+      height: 100%;
+      min-width: 0;
+    }
+
+    .stat .label {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 9px;
+    }
+
+    .stat .value {
+      font-size: clamp(26px, 2.6vw, 32px);
+      font-weight: 700;
+      line-height: 1.05;
+      margin-bottom: 8px;
+    }
+
+    .stat .sub {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .panel {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: clamp(16px, 1.8vw, 20px);
+      margin-bottom: 18px;
+      min-width: 0;
+    }
+
+    .panel h3 {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+
+    .prob-meter-wrap { margin-top: 4px; }
+
+    .meter {
+      position: relative;
+      height: 18px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: linear-gradient(90deg, rgba(25,132,79,.16) 0 40%, rgba(185,122,13,.16) 40% 73%, rgba(197,58,45,.16) 73% 100%);
+      border: 1px solid rgba(23,32,51,.08);
+    }
+
+    .meter-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #20a35f 0%, #e3a120 58%, #d54d3c 100%);
+      transition: width .5s ease;
+      box-shadow: inset 0 0 9px rgba(255,255,255,.35);
+    }
+
+    .meter-pointer {
+      position: absolute;
+      top: -6px;
+      width: 22px;
+      height: 30px;
+      border-radius: 12px;
+      background: white;
+      border: 2px solid #22344f;
+      box-shadow: 0 8px 20px rgba(31,42,71,.16);
+      transform: translateX(-50%);
+      transition: left .5s ease;
+    }
+
+    .meter-pointer::after {
+      content: "";
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #22344f;
+    }
+
+    .scale-row {
+      position: relative;
+      height: 56px;
+      margin-top: 16px;
+    }
+
+    .scale-point {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      width: clamp(110px, 13vw, 142px);
+      max-width: 42vw;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.32;
+      text-wrap: balance;
+    }
+
+    .scale-point::before {
+      content: "";
+      display: block;
+      width: 2px;
+      height: 12px;
+      background: rgba(23,32,51,.23);
+      margin: 0 auto 6px;
+    }
+
+    .category-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      border-radius: 20px;
+      padding: 14px 16px;
+      border: 1px solid transparent;
+      font-size: 15px;
+      font-weight: 700;
+      min-width: 0;
+    }
+
+    .low-banner { background: var(--good-soft); border-color: rgba(25,132,79,.18); color: var(--good); }
+    .mid-banner { background: var(--mid-soft); border-color: rgba(185,122,13,.2); color: var(--mid); }
+    .high-banner { background: var(--high-soft); border-color: rgba(197,58,45,.18); color: var(--high); }
+
+    .journey {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .journey-step {
+      position: relative;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px solid #e4ebf5;
+      background: linear-gradient(180deg, #fff 0%, #fafcff 100%);
+      min-height: 0;
+      transition: var(--transition);
+      opacity: .68;
+      height: 100%;
+      min-width: 0;
+      display: grid;
+      align-content: start;
+    }
+
+    .journey-step.active {
+      opacity: 1;
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(22,36,64,.08);
+      border-color: #cfe0f1;
+    }
+
+    .journey-step strong {
+      display: block;
+      font-size: 16px;
+      line-height: 1.32;
+      margin-bottom: 10px;
+      text-wrap: balance;
+    }
+
+    .journey-step p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.55;
+      color: #49617f;
+      overflow-wrap: normal;
+      word-break: normal;
+      hyphens: none;
+    }
+
+    .clinical-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .clinical-subtitle {
+      margin: 6px 0 10px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .02em;
+      color: #436181;
+    }
+
+    .clinical-grid-bmi {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .factor {
+      position: relative;
+      border-radius: 18px;
+      border: 1px solid #e2eaf4;
+      background: linear-gradient(180deg, #ffffff 0%, #f9fbfe 100%);
+      min-height: 120px;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 28px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: start;
+      transition: var(--transition);
+      cursor: pointer;
+      user-select: none;
+      height: 100%;
+      min-width: 0;
+    }
+
+    .factor:hover {
+      border-color: #ccddef;
+      box-shadow: 0 8px 20px rgba(28,44,74,.08);
+    }
+
+    .factor input { position: absolute; opacity: 0; pointer-events: none; }
+
+    .factor-box {
+      position: relative;
+      left: auto;
+      top: auto;
+      transform: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 9px;
+      border: 2px solid #b6c8db;
+      background: #fff;
+      transition: var(--transition);
+      margin-top: 10px;
+    }
+
+    .factor input:checked + .factor-box {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 10px 18px rgba(10,127,176,.18);
+    }
+
+    .factor input:checked + .factor-box::after {
+      content: "";
+      position: absolute;
+      left: 8px;
+      top: 4px;
+      width: 7px;
+      height: 12px;
+      border: solid white;
+      border-width: 0 3px 3px 0;
+      transform: rotate(45deg);
+    }
+
+    .factor input:checked ~ .factor-text { font-weight: 700; color: #16243b; }
+
+    .factor-text {
+      font-size: 15px;
+      line-height: 1.52;
+      color: #314661;
+      transition: var(--transition);
+      padding-right: 0;
+      overflow-wrap: normal;
+      word-break: normal;
+      hyphens: none;
+      text-wrap: pretty;
+    }
+
+    .factor-text strong {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 700;
+      color: #15253b;
+    }
+
+    .factor-points {
+      position: static;
+      justify-self: end;
+      align-self: start;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(10,127,176,.10);
+      color: #0a6187;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid rgba(10,127,176,.12);
+      white-space: nowrap;
+      margin-left: 6px;
+    }
+
+    .support-grid {
+      display: grid;
+      grid-template-columns: minmax(250px, 290px) minmax(0, 1fr);
+      gap: 16px;
+      margin-top: 16px;
+      align-items: stretch;
+    }
+
+    .support-score {
+      background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
+      border: 1px solid #e1ebf5;
+      border-radius: 20px;
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      min-width: 0;
+      height: 100%;
+    }
+
+    .support-big {
+      font-size: clamp(30px, 3vw, 38px);
+      font-weight: 700;
+      line-height: 1.04;
+    }
+
+    .support-bar-wrap {
+      display: grid;
+      gap: 10px;
+      align-content: center;
+    }
+
+    .support-bar {
+      position: relative;
+      height: 18px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(25,132,79,.15) 0 28.57%, rgba(185,122,13,.15) 28.57% 57.14%, rgba(197,58,45,.15) 57.14% 100%);
+      border: 1px solid rgba(23,32,51,.08);
+      overflow: hidden;
+    }
+
+    .support-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #20a35f, #e3a120, #d54d3c);
+      transition: width .45s ease;
+    }
+
+    .support-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid #dde8f4;
+      background: #f4f9ff;
+      color: #36506d;
+    }
+
+    .recommend-list {
+      display: grid;
+      gap: 10px;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .recommend-item {
+      position: relative;
+      padding: 12px 14px 12px 42px;
+      border-radius: 16px;
+      border: 1px solid #e4ebf5;
+      background: linear-gradient(180deg, #fff 0%, #f9fbff 100%);
+      font-size: 14px;
+      line-height: 1.5;
+      min-width: 0;
+    }
+
+    .recommend-item::before {
+      content: "";
+      position: absolute;
+      left: 14px;
+      top: 16px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: 0 0 0 4px rgba(10,127,176,.12);
+    }
+
+    .report-box {
+      width: 100%;
+      min-height: 220px;
+      resize: vertical;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fbfdff;
+      padding: 14px 16px;
+      font-size: 14px;
+      line-height: 1.6;
+      font-family: 'Inter', Arial, Helvetica, sans-serif;
+      color: var(--text);
+      outline: none;
+      overflow-wrap: anywhere;
+    }
+
+    .tiny-note {
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .pdf-card {
+      position: fixed;
+      left: -200vw;
+      top: 0;
+      width: 900px;
+      background: white;
+      color: #18233a;
+      padding: 34px;
+      z-index: -1;
+      box-shadow: 0 20px 50px rgba(15,22,40,.18);
+    }
+
+    .pdf-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: start;
+      border-bottom: 2px solid #e6eef8;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+
+    .pdf-brand {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .pdf-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+    }
+
+    .pdf-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
+
+    .pdf-subtitle {
+      margin: 0;
+      color: #5f6f88;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .pdf-meta {
+      font-size: 13px;
+      color: #5f6f88;
+      line-height: 1.4;
+      text-align: right;
+    }
+
+    .pdf-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+      align-items: stretch;
+    }
+
+    .pdf-box {
+      border: 1px solid #e5edf7;
+      border-radius: 18px;
+      padding: 14px;
+      background: #fbfdff;
+      min-width: 0;
+      height: 100%;
+    }
+
+    .pdf-box .k {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: #6b7b91;
+      margin-bottom: 8px;
+    }
+
+    .pdf-box .v {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.05;
+      margin-bottom: 6px;
+    }
+
+    .pdf-box .s {
+      font-size: 13px;
+      color: #607088;
+      line-height: 1.4;
+    }
+
+    .pdf-section {
+      margin-bottom: 18px;
+    }
+
+    .pdf-section h4 {
+      margin: 0 0 10px;
+      font-size: 17px;
+    }
+
+    .pdf-list {
+      margin: 0;
+      padding-left: 20px;
+      display: grid;
+      gap: 8px;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .pdf-banner {
+      padding: 14px 16px;
+      border-radius: 16px;
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .pdf-footer {
+      border-top: 1px solid #e5edf7;
+      margin-top: 22px;
+      padding-top: 12px;
+      font-size: 12px;
+      color: #677791;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 1180px) {
+      .layout, .results-top, .support-grid { grid-template-columns: 1fr; }
+      .hero-grid { grid-template-columns: 1fr; }
+      .hero-side { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 980px) {
+      .journey { grid-template-columns: 1fr; }
+      .clinical-grid, .clinical-grid-bmi { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 620px) {
+      .patient-grid { grid-template-columns: 1fr; }
+      .patient-field--name { grid-column: auto; }
+      .patient-age { min-height: 52px; }
+    }
+
+    @media (max-width: 760px) {
+      .shell { padding: 16px; }
+      .hero { padding: 22px 18px; border-radius: 28px; }
+      .brand { align-items: flex-start; }
+      .grid-2, .info-grid, .pdf-grid { grid-template-columns: 1fr; }
+      .hero-side { grid-template-columns: 1fr; }
+      .brand-badge { width: 60px; height: 60px; }
+      .ring-wrap, .ring-wrap svg { width: min(220px, 100%); height: auto; aspect-ratio: 1 / 1; }
+      .scale-row { height: 64px; }
+      .scale-point { width: 110px; max-width: 46vw; font-size: 11px; }
+      .meter-pointer { width: 20px; }
+      .category-banner { align-items: flex-start; }
+      .button-row > button { flex: 1 1 100%; }
+      .inline-input { grid-template-columns: 1fr; }
+      .unit-pill { width: 100%; min-width: 0; height: 44px; }
+      .factor { grid-template-columns: 28px minmax(0,1fr); }
+      .factor-points { grid-column: 2; justify-self: start; margin-left: 0; margin-top: 8px; }
+      .factor-box { margin-top: 6px; }
+    }
+
+    @media print {
+      body { background: white; }
+      .shell { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <div class="brand">
+            <div class="brand-badge">СТ</div>
+            <div>
+              <span class="eyebrow">Клиническая программа</span>
+              <h1>Программа оценки риска возникновения стеатоза печени «СТЕАТОРИСК»</h1>
+              <p class="subtitle"><strong>Индекс риска стеатоза печени</strong> по окружности талии, гликированному гемоглобину и триглицеридам с отдельной балльной оценкой клинических признаков вероятности диагноза и экспортом врачебного заключения в PDF.</p>
+              <div class="hero-chips">
+                <span class="hero-chip">Низкая вероятность: &lt; 40%</span>
+                <span class="hero-chip">Промежуточная зона: 40–72%</span>
+                <span class="hero-chip">Высокая вероятность: ≥ 73%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-side">
+          <div class="glass-note">
+            <strong>Математическое ядро</strong>
+            <p>Вероятность рассчитывается только по формуле на ОТ, HbA1c и триглицериды. Визуальная шкала 0–30 является отображением расчетной вероятности, а не самостоятельной моделью.</p>
+          </div>
+          <div class="glass-note">
+            <strong>Клинические признаки вероятности диагноза</strong>
+            <p>Клинические признаки отображаются отдельно в балльной шкале. Взвешенные признаки вероятности диагноза не изменяют математическую вероятность по формуле, а используются для клинической интерпретации.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="layout">
+      <div class="stack">
+        <section class="card">
+          <span class="label-top">Ввод данных</span>
+          <h2>Параметры пациента</h2>
+          <p class="lead">Данные можно вводить в числовые поля или изменять ползунками. Пересчет выполняется автоматически, а кнопка расчета обновляет итоговую интерпретацию и заключение.</p>
+
+          <div class="input-card">
+            <div class="metric-head">
+              <label>Идентификация пациента</label>
+              <span class="hint">Поля включаются в врачебное заключение и PDF</span>
+            </div>
+            <div class="patient-grid">
+              <div class="patient-field patient-field--name">
+                <label for="patientName">Фамилия, имя, отчество пациента</label>
+                <input id="patientName" class="patient-input" type="text" autocomplete="name" placeholder="например, Иванов Иван Иванович" />
+              </div>
+              <div class="patient-field">
+                <label for="patientDob">Дата рождения</label>
+                <input id="patientDob" class="patient-input" type="date" />
+              </div>
+              <div class="patient-field">
+                <label for="patientAge">Возраст</label>
+                <div id="patientAge" class="patient-age">—<small>рассчитывается автоматически</small></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="input-card">
+            <div class="metric-head">
+              <label for="waist">Окружность талии</label>
+              <span class="hint">Абдоминальное ожирение</span>
+            </div>
+            <div class="inline-input">
+              <input id="waist" type="number" inputmode="decimal" min="40" max="180" step="0.1" placeholder="например, 96" />
+              <div class="unit-pill">см</div>
+            </div>
+            <input id="waistRange" type="range" min="40" max="180" step="0.1" value="96" />
+            <div class="range-row"><span>40 см</span><span id="waistLive">96.0 см</span><span>180 см</span></div>
+          </div>
+
+          <div class="input-card">
+            <div class="metric-head">
+              <label for="hba1c">Гликированный гемоглобин</label>
+              <span class="hint">Маркер нарушения углеводного обмена</span>
+            </div>
+            <div class="inline-input">
+              <input id="hba1c" type="number" inputmode="decimal" min="4" max="14" step="0.1" placeholder="например, 5.9" />
+              <div class="unit-pill">%</div>
+            </div>
+            <input id="hba1cRange" type="range" min="4" max="14" step="0.1" value="5.9" />
+            <div class="range-row"><span>4.0%</span><span id="hba1cLive">5.9 %</span><span>14.0%</span></div>
+          </div>
+
+          <div class="input-card">
+            <div class="metric-head">
+              <label for="tg">Триглицериды</label>
+              <span class="hint">Маркер атерогенной дислипидемии</span>
+            </div>
+            <div class="inline-input">
+              <input id="tg" type="number" inputmode="decimal" min="0.3" max="10" step="0.1" placeholder="например, 1.8" />
+              <div class="unit-pill">ммоль/л</div>
+            </div>
+            <input id="tgRange" type="range" min="0.3" max="10" step="0.1" value="1.8" />
+            <div class="range-row"><span>0.3</span><span id="tgLive">1.8 ммоль/л</span><span>10.0</span></div>
+          </div>
+
+          <div class="summary-chip-row">
+            <span class="summary-chip" id="chipWaist">ОТ: —</span>
+            <span class="summary-chip" id="chipHb">HbA1c: —</span>
+            <span class="summary-chip" id="chipTg">ТГ: —</span>
+          </div>
+
+          <div class="button-row">
+            <button type="button" class="btn-primary" id="calcBtn">Рассчитать риск</button>
+            <button type="button" class="btn-soft" id="resetBtn">Сбросить данные</button>
+          </div>
+
+          <div class="message" id="inputMessage">Для расчета необходимы три показателя: ОТ, HbA1c и триглицериды.</div>
+        </section>
+
+        <section class="card">
+          <span class="label-top">Клинический контекст</span>
+          <h2>Клинические признаки вероятности диагноза</h2>
+          <p class="lead">Отметьте клинические признаки и факторы риска. Они не изменяют математическую вероятность по формуле, а используются для клинической интерпретации и маршрутизации пациента.</p>
+
+          <div class="clinical-subtitle">Категория массы тела (выберите один вариант)</div>
+          <div class="clinical-grid clinical-grid-bmi">
+            <label class="factor factor-radio">
+              <input class="clinical-factor bmi-factor" type="radio" name="bmiFactor" data-points="1" />
+              <span class="factor-box"></span>
+              <span class="factor-text"><strong>Избыточная масса тела</strong> (ИМТ 25,0–29,9 кг/м²)</span>
+              <span class="factor-points">1 балл</span>
+            </label>
+            <label class="factor factor-radio">
+              <input class="clinical-factor bmi-factor" type="radio" name="bmiFactor" data-points="2" />
+              <span class="factor-box"></span>
+              <span class="factor-text"><strong>Ожирение I степени</strong> (ИМТ 30,0–34,9 кг/м²)</span>
+              <span class="factor-points">2 балла</span>
+            </label>
+            <label class="factor factor-radio">
+              <input class="clinical-factor bmi-factor" type="radio" name="bmiFactor" data-points="3" />
+              <span class="factor-box"></span>
+              <span class="factor-text"><strong>Ожирение II степени</strong> (ИМТ 35,0–39,9 кг/м²)</span>
+              <span class="factor-points">3 балла</span>
+            </label>
+            <label class="factor factor-radio">
+              <input class="clinical-factor bmi-factor" type="radio" name="bmiFactor" data-points="4" />
+              <span class="factor-box"></span>
+              <span class="factor-text"><strong>Ожирение III степени</strong> (ИМТ ≥ 40,0 кг/м²)</span>
+              <span class="factor-points">4 балла</span>
+            </label>
+          </div>
+
+          <div class="clinical-subtitle" style="margin-top:14px;">Прочие клинические признаки и факторы риска</div>
+          <div class="clinical-grid">
+            <label class="factor">
+              <input class="clinical-factor" type="checkbox" data-points="1" />
+              <span class="factor-box"></span>
+              <span class="factor-text">Нарушение толерантности к глюкозе и/или сахарный диабет 2 типа</span>
+              <span class="factor-points">1 балл</span>
+            </label>
+            <label class="factor">
+              <input class="clinical-factor" type="checkbox" data-points="1" />
+              <span class="factor-box"></span>
+              <span class="factor-text">Артериальная гипертензия &gt; 140/90 мм рт. ст.</span>
+              <span class="factor-points">1 балл</span>
+            </label>
+            <label class="factor">
+              <input class="clinical-factor" type="checkbox" data-points="1" />
+              <span class="factor-box"></span>
+              <span class="factor-text">Атерогенная дислипидемия, ЛПВП меньше 1,3 ммоль/л или прием статинов</span>
+              <span class="factor-points">1 балл</span>
+            </label>
+            <label class="factor">
+              <input class="clinical-factor" type="checkbox" data-points="1" />
+              <span class="factor-box"></span>
+              <span class="factor-text">Возраст старше 40 лет</span>
+              <span class="factor-points">1 балл</span>
+            </label>
+            <label class="factor">
+              <input class="clinical-factor" type="checkbox" data-points="1" />
+              <span class="factor-box"></span>
+              <span class="factor-text">Утомляемость</span>
+              <span class="factor-points">1 балл</span>
+            </label>
+            <label class="factor">
+              <input class="clinical-factor" type="checkbox" data-points="1" />
+              <span class="factor-box"></span>
+              <span class="factor-text">Тяжесть или дискомфорт в правом подреберье</span>
+              <span class="factor-points">1 балл</span>
+            </label>
+            <label class="factor" style="grid-column: 1 / -1;">
+              <input class="clinical-factor" type="checkbox" data-points="1" />
+              <span class="factor-box"></span>
+              <span class="factor-text">Гепатомегалия</span>
+              <span class="factor-points">1 балл</span>
+            </label>
+          </div>
+
+          <div class="support-grid">
+            <div class="support-score">
+              <div class="label-top" style="margin:0;color:var(--accent)">Шкала признаков</div>
+              <div class="support-big" id="supportBig">0/11</div>
+              <div id="supportText">Слабые признаки вероятности диагноза</div>
+              <div class="tiny-note" id="supportDesc">0–3 балла: слабые признаки вероятности диагноза.</div>
+            </div>
+            <div class="support-bar-wrap">
+              <div class="support-bar">
+                <div class="support-fill" id="supportFill"></div>
+              </div>
+              <div class="support-badges">
+                <span class="badge">0–3: слабые</span>
+                <span class="badge">4–6: умеренные</span>
+                <span class="badge">7–11: выраженные</span>
+              </div>
+              <div class="tiny-note">Врачебная логика: при промежуточной вероятности по формуле и умеренных либо выраженных клинических признаках вероятности диагноза показано активное уточнение стеатоза, исключение другой патологии печени и оценка фиброза.</div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="card">
+        <span class="label-top">Результаты</span>
+        <h2>Расчет и интерпретация</h2>
+        <p class="lead">Верхний контур показывает расчетную вероятность стеатоза по модели, нижний — балльную оценку клинических признаков вероятности диагноза. Дальнейший алгоритм обновляется автоматически.</p>
+
+        <div class="results-top">
+          <div class="ring-card">
+            <div>
+              <div class="label-top" style="margin:0 0 6px;color:var(--accent)">Вероятность по модели</div>
+              <div class="ring-wrap">
+                <svg viewBox="0 0 220 220" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="ringGradient" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#0a7fb0"></stop>
+                      <stop offset="55%" stop-color="#6f57ff"></stop>
+                      <stop offset="100%" stop-color="#d54d3c"></stop>
+                    </linearGradient>
+                  </defs>
+                  <circle class="ring-bg" cx="110" cy="110" r="96"></circle>
+                  <circle class="ring-progress" id="ringProgress" cx="110" cy="110" r="96"></circle>
+                </svg>
+                <div class="ring-center">
+                  <div>
+                    <div class="ring-number" id="ringNumber">—</div>
+                    <div class="ring-caption" id="ringCaption">После расчета здесь появится вероятность стеатоза.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="ring-meta">
+              <div class="mini-line"><span>Индекс модели (0–30)</span><strong id="score30Value">—</strong></div>
+              <div class="mini-line"><span>Пороговые зоны</span><strong>40% / 73%</strong></div>
+              <div class="mini-line"><span>Категория риска</span><strong id="currentRiskShort">—</strong></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="info-grid">
+              <div class="stat">
+                <span class="label">Вероятность стеатоза</span>
+                <div class="value" id="probabilityValue">—</div>
+                <div class="sub" id="probabilitySub">После расчета будет показана вероятность по формуле.</div>
+              </div>
+              <div class="stat">
+                <span class="label">Клинические признаки</span>
+                <div class="value" id="clinicalValue">0/11</div>
+                <div class="sub" id="clinicalSub">Слабые признаки вероятности диагноза.</div>
+              </div>
+              <div class="stat">
+                <span class="label">Следующий шаг</span>
+                <div class="value" id="nextStepShort">—</div>
+                <div class="sub" id="nextStepSub">После расчета будет предложен дальнейший алгоритм.</div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3>Шкала вероятности по модели</h3>
+              <div class="prob-meter-wrap">
+                <div class="meter">
+                  <div class="meter-fill" id="meterFill"></div>
+                </div>
+                <div class="meter-pointer" id="meterPointer" style="left:0%;"></div>
+                <div class="scale-row">
+                  <div class="scale-point" style="left:40%;"><strong>40%</strong><br>низкая вероятность</div>
+                  <div class="scale-point" style="left:73%;"><strong>73%</strong><br>высокая вероятность</div>
+                </div>
+              </div>
+              <div class="category-banner mid-banner" id="categoryBanner">
+                <span id="categoryTitle">Ожидается расчет</span>
+                <span id="categoryText">Введите показатели пациента и выполните расчет.</span>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3>Маршрут дальнейшего алгоритма</h3>
+              <div class="journey">
+                <div class="journey-step" id="step1">
+                  <strong>1. Базовая стратификация</strong>
+                  <p>Определение расчетной вероятности стеатоза по модели и балльная оценка клинических признаков вероятности диагноза.</p>
+                </div>
+                <div class="journey-step" id="step2">
+                  <strong>2. Визуализация и лабораторная диагностика</strong>
+                  <p>УЗИ печени как стартовый метод, далее — лабораторная диагностика, расчет индексов стеатоза и фиброза печени, стеатометрия со стадированием.</p>
+                </div>
+                <div class="journey-step" id="step3">
+                  <strong>3. Углубленная профильная диагностика</strong>
+                  <p>Инструментальная оценка фиброза печени (эластография), консультация гастроэнтеролога и/или гепатолога.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Дальнейший алгоритм</h3>
+          <ul class="recommend-list" id="recommendList">
+            <li class="recommend-item">После выполнения расчета здесь появится персонализированный дальнейший алгоритм обследования и маршрутизации пациента.</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <h3>Заключение для врача</h3>
+          <textarea class="report-box" id="reportBox" readonly></textarea>
+          <div class="button-row">
+            <button type="button" class="btn-soft" id="copyBtn">Скопировать заключение</button>
+            <button type="button" class="btn-pdf" id="pdfBtn">Вывести заключение в PDF</button>
+          </div>
+          <div class="tiny-note">Кнопка PDF формирует отдельный клинический отчет. Если встроенная генерация PDF недоступна, автоматически откроется печатная версия, которую можно сохранить как PDF штатными средствами браузера.</div>
+          <div class="tiny-note">Инструмент не заменяет клиническое мышление, лабораторную и инструментальную диагностику стеатоза печени; итоговое решение принимает врач.</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="pdf-card" id="pdfCard" aria-hidden="true">
+    <div class="pdf-header">
+      <div class="pdf-brand">
+        <div class="pdf-icon">СТ</div>
+        <div>
+          <div class="pdf-title">СТЕАТОРИСК</div>
+          <p class="pdf-subtitle">Программа оценки риска возникновения стеатоза печени</p>
+        </div>
+      </div>
+      <div class="pdf-meta" id="pdfMeta"></div>
+    </div>
+
+    <div class="pdf-banner" id="pdfBanner">Ожидается расчет</div>
+
+    <div class="pdf-grid">
+      <div class="pdf-box">
+        <div class="k">Вероятность стеатоза</div>
+        <div class="v" id="pdfProbability">—</div>
+        <div class="s" id="pdfProbabilityText">После расчета здесь появится вероятность по модели.</div>
+      </div>
+      <div class="pdf-box">
+        <div class="k">Индекс модели</div>
+        <div class="v" id="pdfScore30">—</div>
+        <div class="s">Визуальная шкала 0–30 баллов</div>
+      </div>
+      <div class="pdf-box">
+        <div class="k">Клинические признаки</div>
+        <div class="v" id="pdfClinical">0/11</div>
+        <div class="s" id="pdfClinicalText">Слабые признаки вероятности диагноза</div>
+      </div>
+    </div>
+
+    <div class="pdf-section">
+      <h4>Исходные данные</h4>
+      <ul class="pdf-list" id="pdfInputs"></ul>
+    </div>
+
+    <div class="pdf-section">
+      <h4>Отмеченные клинические признаки</h4>
+      <ul class="pdf-list" id="pdfFactors"></ul>
+    </div>
+
+    <div class="pdf-section">
+      <h4>Дальнейший алгоритм</h4>
+      <ul class="pdf-list" id="pdfRecommendations"></ul>
+    </div>
+
+    <div class="pdf-footer">Документ сформирован автоматически программой «СТЕАТОРИСК». Данный отчет предназначен для клинического использования врачом и не заменяет окончательное заключение специалиста.</div>
+  </section>
+
+  <script>
+    const FORMULA = { intercept: -32.280, waist: 0.153, hba1c: 3.767, tg: 1.982 };
+    const RING_CIRC = 2 * Math.PI * 96;
+    const AUTO_FILE_NAME = 'steatorisk_zaklyuchenie.pdf';
+
+    const el = {
+      waist: document.getElementById('waist'),
+      hba1c: document.getElementById('hba1c'),
+      tg: document.getElementById('tg'),
+      patientName: document.getElementById('patientName'),
+      patientDob: document.getElementById('patientDob'),
+      patientAge: document.getElementById('patientAge'),
+      waistRange: document.getElementById('waistRange'),
+      hba1cRange: document.getElementById('hba1cRange'),
+      tgRange: document.getElementById('tgRange'),
+      waistLive: document.getElementById('waistLive'),
+      hba1cLive: document.getElementById('hba1cLive'),
+      tgLive: document.getElementById('tgLive'),
+      chipWaist: document.getElementById('chipWaist'),
+      chipHb: document.getElementById('chipHb'),
+      chipTg: document.getElementById('chipTg'),
+      calcBtn: document.getElementById('calcBtn'),
+      resetBtn: document.getElementById('resetBtn'),
+      copyBtn: document.getElementById('copyBtn'),
+      pdfBtn: document.getElementById('pdfBtn'),
+      inputMessage: document.getElementById('inputMessage'),
+      ringProgress: document.getElementById('ringProgress'),
+      ringNumber: document.getElementById('ringNumber'),
+      ringCaption: document.getElementById('ringCaption'),
+      probabilityValue: document.getElementById('probabilityValue'),
+      probabilitySub: document.getElementById('probabilitySub'),
+      score30Value: document.getElementById('score30Value'),
+      currentRiskShort: document.getElementById('currentRiskShort'),
+      meterFill: document.getElementById('meterFill'),
+      meterPointer: document.getElementById('meterPointer'),
+      categoryBanner: document.getElementById('categoryBanner'),
+      categoryTitle: document.getElementById('categoryTitle'),
+      categoryText: document.getElementById('categoryText'),
+      clinicalValue: document.getElementById('clinicalValue'),
+      clinicalSub: document.getElementById('clinicalSub'),
+      nextStepShort: document.getElementById('nextStepShort'),
+      nextStepSub: document.getElementById('nextStepSub'),
+      supportBig: document.getElementById('supportBig'),
+      supportText: document.getElementById('supportText'),
+      supportDesc: document.getElementById('supportDesc'),
+      supportFill: document.getElementById('supportFill'),
+      recommendList: document.getElementById('recommendList'),
+      reportBox: document.getElementById('reportBox'),
+      step1: document.getElementById('step1'),
+      step2: document.getElementById('step2'),
+      step3: document.getElementById('step3'),
+      pdfCard: document.getElementById('pdfCard'),
+      pdfMeta: document.getElementById('pdfMeta'),
+      pdfBanner: document.getElementById('pdfBanner'),
+      pdfProbability: document.getElementById('pdfProbability'),
+      pdfProbabilityText: document.getElementById('pdfProbabilityText'),
+      pdfScore30: document.getElementById('pdfScore30'),
+      pdfClinical: document.getElementById('pdfClinical'),
+      pdfClinicalText: document.getElementById('pdfClinicalText'),
+      pdfInputs: document.getElementById('pdfInputs'),
+      pdfFactors: document.getElementById('pdfFactors'),
+      pdfRecommendations: document.getElementById('pdfRecommendations')
+    };
+
+    const clinicalFactors = Array.from(document.querySelectorAll('.clinical-factor'));
+    let state = {
+      calculated: false,
+      probability: null,
+      probabilityPct: null,
+      score30: null,
+      category: null,
+      clinicalScore: 0,
+      clinicalLevel: null,
+      recommendations: []
+    };
+
+    function parseRuNumber(value) {
+      if (typeof value !== 'string') return NaN;
+      const cleaned = value.replace(/\s+/g, '').replace(',', '.');
+      return cleaned === '' ? NaN : Number(cleaned);
+    }
+
+    function formatDecimal(num, digits = 1) {
+      return Number(num).toLocaleString('ru-RU', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+    }
+
+    function clamp(num, min, max) {
+      return Math.min(Math.max(num, min), max);
+    }
+
+    function formatDateRu(isoDate) {
+      if (!isoDate) return '';
+      const [year, month, day] = isoDate.split('-').map(Number);
+      if (!year || !month || !day) return '';
+      return new Date(year, month - 1, day).toLocaleDateString('ru-RU');
+    }
+
+    function calculateAge(isoDate) {
+      if (!isoDate) return null;
+      const [year, month, day] = isoDate.split('-').map(Number);
+      if (!year || !month || !day) return null;
+      const birth = new Date(year, month - 1, day);
+      const today = new Date();
+      if (Number.isNaN(birth.getTime()) || birth > today) return null;
+      let age = today.getFullYear() - birth.getFullYear();
+      const monthDiff = today.getMonth() - birth.getMonth();
+      const dayDiff = today.getDate() - birth.getDate();
+      if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) age--;
+      return age >= 0 ? age : null;
+    }
+
+    function updatePatientAge() {
+      const age = calculateAge(el.patientDob.value);
+      el.patientAge.innerHTML = age !== null
+        ? `${age} лет<small>рассчитано автоматически</small>`
+        : `—<small>рассчитывается автоматически</small>`;
+      updatePdfTemplate();
+      return age;
+    }
+
+    function updateMiniChips() {
+      const w = parseRuNumber(el.waist.value);
+      const h = parseRuNumber(el.hba1c.value);
+      const t = parseRuNumber(el.tg.value);
+      el.chipWaist.textContent = `ОТ: ${Number.isFinite(w) ? formatDecimal(w, 1) + ' см' : '—'}`;
+      el.chipHb.textContent = `HbA1c: ${Number.isFinite(h) ? formatDecimal(h, 1) + ' %' : '—'}`;
+      el.chipTg.textContent = `ТГ: ${Number.isFinite(t) ? formatDecimal(t, 1) + ' ммоль/л' : '—'}`;
+    }
+
+    function syncPair(inputEl, rangeEl, liveEl, suffix) {
+      function fromInput() {
+        if (inputEl.value !== '') {
+          rangeEl.value = clamp(parseRuNumber(inputEl.value), Number(rangeEl.min), Number(rangeEl.max));
+        }
+        liveEl.textContent = `${formatDecimal(rangeEl.value, 1)} ${suffix}`.trim();
+        updateMiniChips();
+      }
+      function fromRange() {
+        inputEl.value = rangeEl.value;
+        liveEl.textContent = `${formatDecimal(rangeEl.value, 1)} ${suffix}`.trim();
+        updateMiniChips();
+        autoRecalculate();
+      }
+      inputEl.addEventListener('input', () => {
+        fromInput();
+        autoRecalculate();
+      });
+      rangeEl.addEventListener('input', fromRange);
+      fromRange();
+    }
+
+    function getClinicalScore() {
+      return clinicalFactors.filter(item => item.checked).reduce((sum, item) => sum + Number(item.dataset.points || 1), 0);
+    }
+
+    function getClinicalLevel(score) {
+      if (score <= 3) return { title: 'Слабые', desc: '0–3 балла: слабые признаки вероятности диагноза.' };
+      if (score <= 6) return { title: 'Умеренные', desc: '4–6 баллов: умеренные признаки вероятности диагноза.' };
+      return { title: 'Выраженные', desc: '7–11 баллов: выраженные признаки вероятности диагноза.' };
+    }
+
+    function updateClinicalPanel() {
+      const score = getClinicalScore();
+      const level = getClinicalLevel(score);
+      const fillPct = (score / 11) * 100;
+      el.supportBig.textContent = `${score}/11`;
+      el.supportText.textContent = `${level.title} признаки вероятности диагноза`;
+      el.supportDesc.textContent = level.desc;
+      el.supportFill.style.width = `${fillPct}%`;
+      el.clinicalValue.textContent = `${score}/11`;
+      el.clinicalSub.textContent = `${level.title} признаки вероятности диагноза.`;
+      state.clinicalScore = score;
+      state.clinicalLevel = level;
+      return { score, level };
+    }
+
+    function getRiskCategory(probability) {
+      if (probability < 0.40) {
+        return {
+          code: 'low',
+          title: 'Низкая вероятность стеатоза',
+          text: 'Менее 40%: стеатоз маловероятен, но не исключается полностью.',
+          short: 'Низкая',
+          banner: 'low-banner'
+        };
+      }
+      if (probability <= 0.72) {
+        return {
+          code: 'mid',
+          title: 'Промежуточная / неопределенная зона',
+          text: 'От 40% до 72%: результат требует клинической верификации.',
+          short: 'Промежуточная',
+          banner: 'mid-banner'
+        };
+      }
+      return {
+        code: 'high',
+        title: 'Высокая вероятность стеатоза',
+        text: '73% и выше: стеатоз вероятен; показано подтверждение и стадирование.',
+        short: 'Высокая',
+        banner: 'high-banner'
+      };
+    }
+
+    function getNextStepText(categoryCode, clinicalScore) {
+      if (categoryCode === 'low') {
+        return clinicalScore >= 4
+          ? { title: 'Верификация', sub: 'Несмотря на низкую расчетную вероятность, клинический контекст требует лабораторной и инструментальной проверки.' }
+          : { title: 'Динамическое наблюдение', sub: 'Коррекция питания, образа жизни и повторная оценка риска в динамике.' };
+      }
+      if (categoryCode === 'mid') {
+        return { title: 'Уточняющая диагностика', sub: 'Показаны визуализация печени, лабораторный блок, исключение другой патологии печени и расчет индексов стеатоза и фиброза печени.' };
+      }
+      return { title: 'Стадирование', sub: 'Требуются визуализация, стеатометрия со стадированием и углубленная профильная диагностика.' };
+    }
+
+    function getRecommendations(categoryCode, clinicalScore) {
+      const list = [];
+
+      if (categoryCode === 'low') {
+        list.push('Низкая расчетная вероятность стеатоза: при слабых клинических признаках вероятности диагноза предпочтительны коррекция питания, расширение физической активности, контроль массы тела и окружности талии, а также контроль углеводного и липидного обмена.');
+        list.push('Следует оценить употребление алкоголя, возможное воздействие его метаболитов на печень и другие факторы образа жизни, поскольку сбор анамнеза должен быть направлен на выявление кардиометаболических факторов риска, особенностей питания и употребления алкоголя.');
+        list.push('При сохранении кардиометаболических факторов риска без установленного диагноза целесообразно динамическое скрининговое обследование: тромбоциты, АЛТ, АСТ и УЗИ органов брюшной полости в плановом порядке.');
+        if (clinicalScore >= 4) {
+          list.push('Несмотря на низкую вероятность по формуле, умеренные или выраженные клинические признаки вероятности диагноза требуют верификации: общий анализ крови с тромбоцитами, биохимический профиль (АЛТ, АСТ, ГГТ, ЩФ, билирубин, креатинин), липидный профиль, глюкоза и/или HbA1c.');
+          list.push('Показано УЗИ печени как стартовый метод; при наличии технической возможности — стеатометрия со стадированием и инструментальная оценка фиброза печени.');
+          list.push('По показаниям следует исключать другую патологию печени: маркеры вирусных гепатитов B и C, иммуноглобулины/гамма-глобулины, насыщение трансферрина железом, церулоплазмин.');
+        }
+      }
+
+      if (categoryCode === 'mid') {
+        list.push('Промежуточная / неопределенная зона требует клинической верификации и последовательного диагностического уточнения.');
+        list.push('Рекомендуется общий анализ крови с оценкой тромбоцитов и биохимический профиль: АЛТ, АСТ, ГГТ, ЩФ, билирубин, креатинин, липидный спектр, глюкоза и/или HbA1c.');
+        list.push('Показан расчет индексов стеатоза и фиброза печени с оценкой характера течения заболевания печени в комплексе с активностью АЛТ и АСТ.');
+        list.push('УЗИ печени используется как инструмент первой линии для выявления стеатоза; при наличии возможности показаны количественная оценка стеатоза (стеатометрия/CAP) и инструментальная оценка фиброза печени (эластография). В специализированных условиях для подтверждения и количественной оценки стеатоза может применяться МР-оценка фракции жира печени как метод второй линии.');
+        list.push('Обязательно следует оценить употребление алкоголя и исключить другие частые причины хронического поражения печени: вирусные гепатиты B и C, аутоиммунное поражение печени, гемохроматоз, болезнь Вильсона — по клиническим показаниям.');
+        if (clinicalScore >= 7) {
+          list.push('При выраженных клинических признаках вероятности диагноза, персистирующем повышении трансаминаз или диагностической неясности показана ранняя консультация гастроэнтеролога и/или гепатолога.');
+        }
+      }
+
+      if (categoryCode === 'high') {
+        list.push('Высокая вероятность стеатоза: показаны подтверждение визуализацией и обязательное стадирование поражения печени.');
+        list.push('Необходим базовый лабораторный блок: общий анализ крови с тромбоцитами; биохимический профиль (АЛТ, АСТ, ГГТ, ЩФ, билирубин, креатинин); липидный спектр; глюкоза и/или HbA1c.');
+        list.push('Следует выполнить расчет индексов стеатоза и фиброза печени и интерпретировать их совместно с активностью АЛТ/АСТ и клиническим профилем пациента.');
+        list.push('Показаны УЗИ печени как метод первой линии, стеатометрия со стадированием и инструментальная оценка фиброза печени (эластография). В специализированных учреждениях при необходимости может использоваться количественная МР-оценка жира печени.');
+        list.push('Обязательно оцениваются употребление алкоголя, потенциальное токсическое воздействие на печень, а также выполняются маркеры вирусных гепатитов. По показаниям исключаются аутоиммунные и обменные заболевания печени.');
+        list.push('Показана консультация гастроэнтеролога и/или гепатолога для углубленной профильной диагностики, определения риска прогрессирования и решения вопроса о дальнейшей специализированной тактике.');
+        list.push('Параллельно необходимы коррекция питания, снижение массы тела, физическая активность, контроль HbA1c, липидного профиля, артериального давления, а также отказ от алкоголя и табакокурения.');
+      }
+
+      return list;
+    }
+
+    function renderJourney(categoryCode) {
+      [el.step1, el.step2, el.step3].forEach(step => step.classList.remove('active'));
+      el.step1.classList.add('active');
+      if (categoryCode === 'mid' || categoryCode === 'high') el.step2.classList.add('active');
+      if (categoryCode === 'high') el.step3.classList.add('active');
+    }
+
+    function getCheckedFactorLabels() {
+      return clinicalFactors
+        .filter(item => item.checked)
+        .map(item => item.closest('.factor').querySelector('.factor-text').textContent.trim());
+    }
+
+    function buildReportText(probability, score30, category, clinicalScore, clinicalLevel, recommendations) {
+      const factors = getCheckedFactorLabels();
+      const factorsText = factors.length ? factors.join('; ') : 'клинические признаки не отмечены';
+      const timestamp = new Date().toLocaleString('ru-RU');
+      const patientName = el.patientName.value.trim() || 'не указаны';
+      const dobText = formatDateRu(el.patientDob.value) || 'не указана';
+      const age = calculateAge(el.patientDob.value);
+      const ageText = age !== null ? `${age} лет` : 'не рассчитан';
+      return [
+        'Программа оценки риска возникновения стеатоза печени «СТЕАТОРИСК»',
+        `Дата и время формирования: ${timestamp}`,
+        `Пациент: ${patientName}.`,
+        `Дата рождения: ${dobText}. Возраст: ${ageText}.`,
+        '',
+        `Исходные данные: ОТ ${el.waist.value} см; HbA1c ${el.hba1c.value} %; триглицериды ${el.tg.value} ммоль/л.`,
+        `Вероятность стеатоза по модели: ${(probability * 100).toFixed(1)}%.`,
+        `Индекс модели: ${score30}/30 баллов.`,
+        `Категория риска: ${category.title}.`,
+        `Клинические признаки вероятности диагноза: ${clinicalScore}/11 баллов — ${clinicalLevel.title.toLowerCase()} признаки вероятности диагноза.`,
+        `Отмеченные клинические признаки: ${factorsText}.`,
+        '',
+        'Рекомендуемая тактика:',
+        ...recommendations.map((item, i) => `${i + 1}. ${item}`),
+        '',
+        'Примечание: шкала клинических признаков вероятности диагноза не изменяет математическую вероятность по формуле, а используется для интерпретации результата и маршрутизации пациента.'
+      ].join('\n');
+    }
+
+    function renderRecommendations(list) {
+      el.recommendList.innerHTML = list.map(item => `<li class="recommend-item">${item}</li>`).join('');
+    }
+
+    function validateInputs(showMessage = false) {
+      const waist = parseRuNumber(el.waist.value);
+      const hba1c = parseRuNumber(el.hba1c.value);
+      const tg = parseRuNumber(el.tg.value);
+      const valid = Number.isFinite(waist) && Number.isFinite(hba1c) && Number.isFinite(tg) && waist > 0 && hba1c > 0 && tg > 0;
+      if (showMessage) {
+        el.inputMessage.style.display = 'block';
+        el.inputMessage.textContent = valid
+          ? 'Все обязательные поля заполнены. Результаты обновлены.'
+          : 'Проверьте ввод. Все три обязательных поля должны содержать положительные числовые значения.';
+        el.inputMessage.style.background = valid ? '#edf8f1' : '#fff6de';
+        el.inputMessage.style.borderColor = valid ? '#b9dfc6' : '#efd38a';
+        el.inputMessage.style.color = valid ? '#175f37' : '#6d5108';
+      }
+      return { valid, waist, hba1c, tg };
+    }
+
+    function renderDefault() {
+      el.ringNumber.textContent = '—';
+      el.ringCaption.textContent = 'После расчета здесь появится вероятность стеатоза.';
+      el.ringProgress.style.strokeDashoffset = RING_CIRC;
+      el.probabilityValue.textContent = '—';
+      el.probabilitySub.textContent = 'После расчета будет показана вероятность по формуле.';
+      el.score30Value.textContent = '—';
+      el.currentRiskShort.textContent = '—';
+      el.meterFill.style.width = '0%';
+      el.meterPointer.style.left = '0%';
+      el.categoryBanner.className = 'category-banner mid-banner';
+      el.categoryTitle.textContent = 'Ожидается расчет';
+      el.categoryText.textContent = 'Введите показатели пациента и выполните расчет.';
+      el.nextStepShort.textContent = '—';
+      el.nextStepSub.textContent = 'После расчета будет предложен дальнейший алгоритм.';
+      renderJourney('');
+      el.recommendList.innerHTML = '<li class="recommend-item">После выполнения расчета здесь появится персонализированный дальнейший алгоритм обследования и маршрутизации пациента.</li>';
+      el.reportBox.value = '';
+      state.calculated = false;
+    }
+
+    function calculate(showMessage = false) {
+      const parsed = validateInputs(showMessage);
+      const clinical = updateClinicalPanel();
+
+      if (!parsed.valid) {
+        renderDefault();
+        return;
+      }
+
+      const lp = FORMULA.intercept + FORMULA.waist * parsed.waist + FORMULA.hba1c * parsed.hba1c + FORMULA.tg * parsed.tg;
+      const probability = 1 / (1 + Math.exp(-lp));
+      const probabilityPct = probability * 100;
+      const score30 = Math.round(probability * 30);
+      const category = getRiskCategory(probability);
+      const nextStep = getNextStepText(category.code, clinical.score);
+      const recommendations = getRecommendations(category.code, clinical.score);
+      const ringOffset = RING_CIRC * (1 - clamp(probability, 0, 1));
+
+      state = { calculated: true, probability, probabilityPct, score30, category, clinicalScore: clinical.score, clinicalLevel: clinical.level, recommendations };
+
+      el.ringNumber.textContent = `${probabilityPct.toFixed(1)}%`;
+      el.ringCaption.textContent = category.title;
+      el.ringProgress.style.strokeDashoffset = ringOffset;
+      el.probabilityValue.textContent = `${probabilityPct.toFixed(1)}%`;
+      el.probabilitySub.textContent = category.text;
+      el.score30Value.textContent = `${score30}/30`;
+      el.currentRiskShort.textContent = category.short;
+      el.meterFill.style.width = `${clamp(probabilityPct, 0, 100)}%`;
+      el.meterPointer.style.left = `${clamp(probabilityPct, 0, 100)}%`;
+      el.categoryBanner.className = `category-banner ${category.banner}`;
+      el.categoryTitle.textContent = category.title;
+      el.categoryText.textContent = category.text;
+      el.nextStepShort.textContent = nextStep.title;
+      el.nextStepSub.textContent = nextStep.sub;
+      renderJourney(category.code);
+      renderRecommendations(recommendations);
+      el.reportBox.value = buildReportText(probability, score30, category, clinical.score, clinical.level, recommendations);
+      updatePdfTemplate();
+    }
+
+    function autoRecalculate() {
+      if (state.calculated) calculate(false);
+    }
+
+    function resetAll() {
+      el.patientName.value = '';
+      el.patientDob.value = '';
+      updatePatientAge();
+      el.waist.value = '';
+      el.hba1c.value = '';
+      el.tg.value = '';
+      el.waistRange.value = 96;
+      el.hba1cRange.value = 5.9;
+      el.tgRange.value = 1.8;
+      clinicalFactors.forEach(item => { item.checked = false; });
+      updateClinicalPanel();
+      syncLiveLabels();
+      updateMiniChips();
+      renderDefault();
+      el.inputMessage.style.display = 'block';
+      el.inputMessage.textContent = 'Для расчета необходимы три показателя: ОТ, HbA1c и триглицериды.';
+      el.inputMessage.style.background = '#fff6de';
+      el.inputMessage.style.borderColor = '#efd38a';
+      el.inputMessage.style.color = '#6d5108';
+      updatePdfTemplate();
+    }
+
+    function syncLiveLabels() {
+      el.waistLive.textContent = `${formatDecimal(el.waistRange.value, 1)} см`;
+      el.hba1cLive.textContent = `${formatDecimal(el.hba1cRange.value, 1)} %`;
+      el.tgLive.textContent = `${formatDecimal(el.tgRange.value, 1)} ммоль/л`;
+    }
+
+    function updatePdfTemplate() {
+      const now = new Date();
+      const factors = getCheckedFactorLabels();
+      const patientName = el.patientName.value.trim();
+      const dobText = formatDateRu(el.patientDob.value);
+      const age = calculateAge(el.patientDob.value);
+      const metaLines = [];
+      if (patientName) metaLines.push(`Пациент: ${patientName}`);
+      if (dobText) metaLines.push(`Дата рождения: ${dobText}`);
+      if (age !== null) metaLines.push(`Возраст: ${age} лет`);
+      metaLines.push(`Дата: ${now.toLocaleDateString('ru-RU')}`);
+      metaLines.push(`Время: ${now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`);
+      el.pdfMeta.innerHTML = metaLines.join('<br>');
+
+      const category = state.category || { title: 'Ожидается расчет', text: 'Введите показатели пациента и выполните расчет.', banner: 'mid-banner' };
+      el.pdfBanner.className = `pdf-banner ${category.banner || 'mid-banner'}`;
+      el.pdfBanner.textContent = category.title;
+      el.pdfProbability.textContent = state.calculated ? `${state.probabilityPct.toFixed(1)}%` : '—';
+      el.pdfProbabilityText.textContent = state.calculated ? category.text : 'После расчета здесь появится вероятность по модели.';
+      el.pdfScore30.textContent = state.calculated ? `${state.score30}/30` : '—';
+      el.pdfClinical.textContent = `${state.clinicalScore || 0}/11`;
+      el.pdfClinicalText.textContent = state.clinicalLevel ? `${state.clinicalLevel.title} признаки вероятности диагноза` : 'Слабые признаки вероятности диагноза';
+
+      const inputItems = [
+        `Фамилия, имя, отчество: ${patientName || 'не указаны'}`,
+        `Дата рождения: ${dobText || 'не указана'}`,
+        `Возраст: ${age !== null ? age + ' лет' : 'не рассчитан'}`,
+        `Окружность талии: ${el.waist.value || 'не указана'} см`,
+        `Гликированный гемоглобин HbA1c: ${el.hba1c.value || 'не указан'} %`,
+        `Триглицериды: ${el.tg.value || 'не указаны'} ммоль/л`
+      ];
+      el.pdfInputs.innerHTML = inputItems.map(item => `<li>${item}</li>`).join('');
+
+      el.pdfFactors.innerHTML = (factors.length ? factors : ['Клинические признаки не отмечены']).map(item => `<li>${item}</li>`).join('');
+      el.pdfRecommendations.innerHTML = (state.recommendations.length ? state.recommendations : ['После расчета здесь появится дальнейший алгоритм.']).map(item => `<li>${item}</li>`).join('');
+    }
+
+    async function exportPdf() {
+      if (!state.calculated) {
+        calculate(true);
+        if (!state.calculated) return;
+      }
+      updatePdfTemplate();
+
+      try {
+        if (window.html2canvas && window.jspdf && window.jspdf.jsPDF) {
+          const canvas = await window.html2canvas(el.pdfCard, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            logging: false
+          });
+          const imgData = canvas.toDataURL('image/png');
+          const pdf = new window.jspdf.jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+          const pageWidth = pdf.internal.pageSize.getWidth();
+          const pageHeight = pdf.internal.pageSize.getHeight();
+          const imgWidth = pageWidth - 16;
+          const imgHeight = canvas.height * imgWidth / canvas.width;
+
+          if (imgHeight <= pageHeight - 16) {
+            pdf.addImage(imgData, 'PNG', 8, 8, imgWidth, imgHeight);
+          } else {
+            let heightLeft = imgHeight;
+            let position = 8;
+            pdf.addImage(imgData, 'PNG', 8, position, imgWidth, imgHeight);
+            heightLeft -= (pageHeight - 16);
+            while (heightLeft > 0) {
+              position = heightLeft - imgHeight + 8;
+              pdf.addPage();
+              pdf.addImage(imgData, 'PNG', 8, position, imgWidth, imgHeight);
+              heightLeft -= (pageHeight - 16);
+            }
+          }
+          pdf.save(AUTO_FILE_NAME);
+          el.pdfBtn.textContent = 'PDF сформирован';
+          setTimeout(() => { el.pdfBtn.textContent = 'Вывести заключение в PDF'; }, 1800);
+          return;
+        }
+      } catch (error) {
+        console.error(error);
+      }
+      openPrintFallback();
+    }
+
+    function openPrintFallback() {
+      const reportHtml = `<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>СТЕАТОРИСК — заключение</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style>
+        body{font-family:'Inter',Arial,Helvetica,sans-serif;color:#172033;margin:32px;line-height:1.45}
+        h1{margin:0 0 4px;font-size:30px} h2{font-size:18px;margin:22px 0 10px}
+        .muted{color:#64728b;font-size:13px} .box{border:1px solid #dbe4f1;border-radius:16px;padding:14px 16px;margin:10px 0;background:#fbfdff}
+        ul{padding-left:20px} li{margin-bottom:8px} .banner{padding:12px 14px;border-radius:14px;font-weight:700;margin:16px 0}
+        .low{background:#edf8f1;color:#19844f}.mid{background:#fff6e6;color:#b97a0d}.high{background:#fcecec;color:#c53a2d}
+        @media print{button{display:none}}
+      </style></head><body>
+      <h1>Программа оценки риска возникновения стеатоза печени «СТЕАТОРИСК»</h1>
+      <div class="muted">Индекс риска стеатоза печени</div>
+      <div class="muted">Дата: ${new Date().toLocaleString('ru-RU')}</div>
+      <div class="banner ${state.category.code === 'low' ? 'low' : state.category.code === 'mid' ? 'mid' : 'high'}">${state.category.title}</div>
+      ${el.pdfCard.innerHTML}
+      <script>window.onload=function(){window.print();};<\/script>
+      </body></html>`;
+      const win = window.open('', '_blank', 'width=980,height=900');
+      if (!win) return;
+      win.document.open();
+      win.document.write(reportHtml);
+      win.document.close();
+      el.pdfBtn.textContent = 'Открыта версия для печати';
+      setTimeout(() => { el.pdfBtn.textContent = 'Вывести заключение в PDF'; }, 2200);
+    }
+
+    syncPair(el.waist, el.waistRange, el.waistLive, 'см');
+    syncPair(el.hba1c, el.hba1cRange, el.hba1cLive, '%');
+    syncPair(el.tg, el.tgRange, el.tgLive, 'ммоль/л');
+
+    clinicalFactors.forEach(item => item.addEventListener('change', () => {
+      updateClinicalPanel();
+      updatePdfTemplate();
+      autoRecalculate();
+    }));
+
+    el.patientName.addEventListener('input', () => {
+      updatePdfTemplate();
+      if (state.calculated) {
+        el.reportBox.value = buildReportText(state.probability, state.score30, state.category, state.clinicalScore, state.clinicalLevel, state.recommendations);
+      }
+    });
+
+    el.patientDob.addEventListener('input', () => {
+      updatePatientAge();
+      if (state.calculated) {
+        el.reportBox.value = buildReportText(state.probability, state.score30, state.category, state.clinicalScore, state.clinicalLevel, state.recommendations);
+      }
+    });
+
+    el.calcBtn.addEventListener('click', () => calculate(true));
+    el.resetBtn.addEventListener('click', resetAll);
+
+    [el.waist, el.hba1c, el.tg].forEach(input => {
+      input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') calculate(true);
+      });
+    });
+
+    el.copyBtn.addEventListener('click', async () => {
+      if (!el.reportBox.value) calculate(true);
+      if (!el.reportBox.value) return;
+      try {
+        await navigator.clipboard.writeText(el.reportBox.value);
+        el.copyBtn.textContent = 'Заключение скопировано';
+        setTimeout(() => { el.copyBtn.textContent = 'Скопировать заключение'; }, 1600);
+      } catch (error) {
+        el.copyBtn.textContent = 'Не удалось скопировать';
+        setTimeout(() => { el.copyBtn.textContent = 'Скопировать заключение'; }, 1600);
+      }
+    });
+
+    el.pdfBtn.addEventListener('click', exportPdf);
+
+    el.ringProgress.style.strokeDasharray = String(RING_CIRC);
+    el.ringProgress.style.strokeDashoffset = String(RING_CIRC);
+    updateClinicalPanel();
+    updateMiniChips();
+    updatePatientAge();
+    updatePdfTemplate();
+    renderDefault();
+  </script>
+</body>
+</html>
